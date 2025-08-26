@@ -1,0 +1,51 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Build & Test
+dist/
+coverage/
+.nyc_output/
+.eslintcache
+.tmp/
+.temp/
+
+# Logs
+logs/
+*.log
+report.*.json
+
+# Env & secrets (giữ .env.example)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*
+!.env.example
+
+# Prisma
+# Giữ prisma/migrations để versioning!
+prisma/*.db
+prisma/dev.db
+prisma/generated/
+# Nếu bạn không dùng thư mục này, có thể xóa dòng trên.
+
+# Docker (nếu bạn bind data ra thư mục)
+docker-data/
+
+# (Khuyên COMMIT) lockfile:
+#   -> package-lock.json / yarn.lock / pnpm-lock.yaml NÊN commit

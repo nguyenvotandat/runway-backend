@@ -1,0 +1,20 @@
+services:
+  db:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: runway
+      MYSQL_USER: runway
+      MYSQL_PASSWORD: runway_password
+      MYSQL_ROOT_PASSWORD: runway_root_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+  adminer:
+    image: adminer
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+volumes:
+  db_data:
