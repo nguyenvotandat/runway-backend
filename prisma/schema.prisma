@@ -1,11 +1,40 @@
-datasource db {
-  provider          = "mysql"
-  url               = env("DATABASE_URL")
-  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
-}
-
 generator client {
   provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Brand {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  products  Product[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  products  Product[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Color {
+  id             String           @id @default(cuid())
+  name           String           @unique
+  hex            String           @db.Char(7)
+  productVariants ProductVariant[]
+}
+
+model Size {
+  id             String           @id @default(cuid())
+  label          String           @unique
+  productVariants ProductVariant[]
 }
 
 model User {
@@ -13,39 +42,114 @@ model User {
   email     String   @unique
   password  String
   name      String?
+  reviews   Review[]
   createdAt DateTime @default(now())
 }
 
-model Category {
-  id       String   @id @default(cuid())
-  name     String   @unique
-  products Product[]
+model Tag {
+  id         String        @id @default(cuid())
+  name       String        @unique
+  productTags ProductTag[]
 }
 
 model Product {
-  id         String         @id @default(cuid())
-  name       String
-  brand      String
-  price      Decimal        @db.Decimal(10, 2)
-  images     ProductImage[]
-  colors     ProductColor[]
-  glbUrl     String?
-  category   Category       @relation(fields: [categoryId], references: [id])
-  categoryId String
-  createdAt  DateTime       @default(now())
+  id             String           @id @default(cuid())
+  name           String
+  slug           String           @unique
+  description    String?
+  glbUrl         String?
+  ratingAverage  Decimal?         @db.Decimal(3, 2)
+  ratingCount    Int              @default(0)
+  brandId        String
+  categoryId     String
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  brand          Brand            @relation(fields: [brandId], references: [id])
+  category       Category         @relation(fields: [categoryId], references: [id])
+  productImages  ProductImage[]
+  productTags    ProductTag[]
+  productVariants ProductVariant[]
+  reviews        Review[]
 }
 
 model ProductImage {
-  id        String  @id @default(cuid())
+  id        String   @id @default(cuid())
   url       String
-  product   Product @relation(fields: [productId], references: [id])
   productId String
+  sortOrder Int      @default(0)
+  product   Product  @relation(fields: [productId], references: [id])
+
+  @@index([productId, sortOrder])
 }
 
-model ProductColor {
-  id        String  @id @default(cuid())
-  name      String
-  hex       String
-  product   Product @relation(fields: [productId], references: [id])
+model ProductTag {
   productId String
+  tagId     String
+  product   Product @relation(fields: [productId], references: [id])
+  tag       Tag     @relation(fields: [tagId], references: [id])
+
+  @@id([productId, tagId])
+  @@index([tagId])
+}
+
+model ProductVariant {
+  id         String                 @id @default(cuid())
+  productId  String
+  colorId    String
+  sizeId     String
+  sku        String                 @unique
+  status     ProductVariantStatus  @default(ACTIVE)
+  createdAt  DateTime              @default(now())
+  updatedAt  DateTime              @updatedAt
+
+  product    Product               @relation(fields: [productId], references: [id])
+  color      Color                 @relation(fields: [colorId], references: [id])
+  size       Size                  @relation(fields: [sizeId], references: [id])
+  inventory  Inventory?
+  prices     Price[]
+}
+
+model Inventory {
+  variantId   String   @id
+  quantity    Int      @default(0)
+  safetyStock Int      @default(0)
+  updatedAt   DateTime @updatedAt
+
+  variant     ProductVariant @relation(fields: [variantId], references: [id])
+}
+
+model Price {
+  id         String          @id @default(cuid())
+  variantId  String
+  currency   String          @default("USD")
+  amount     Decimal         @db.Decimal(10, 2)
+  discount   Decimal?        @db.Decimal(10, 2)
+  validFrom  DateTime        @default(now())
+  validTo    DateTime?
+
+  variant    ProductVariant  @relation(fields: [variantId], references: [id])
+
+  @@index([variantId, validFrom(sort: Desc)])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  productId String
+  userId    String
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+
+  product   Product  @relation(fields: [productId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([productId, rating])
+  @@index([userId])
+}
+
+enum ProductVariantStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
 }
