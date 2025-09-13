@@ -7,55 +7,55 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Brand {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  products  Product[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model brand {
+  id        String    @id
+  name      String    @unique(map: "Brand_name_key")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime
+  product   product[]
 }
 
-model Category {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  slug      String   @unique
-  products  Product[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model category {
+  id        String    @id
+  name      String    @unique(map: "Category_name_key")
+  slug      String    @unique(map: "Category_slug_key")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime
+  product   product[]
 }
 
-model Color {
-  id             String           @id @default(cuid())
-  name           String           @unique
+model color {
+  id             String           @id
+  name           String           @unique(map: "Color_name_key")
   hex            String           @db.Char(7)
-  productVariants ProductVariant[]
+  productvariant productvariant[]
 }
 
-model Size {
-  id             String           @id @default(cuid())
-  label          String           @unique
-  productVariants ProductVariant[]
+model inventory {
+  variantId      String         @id
+  quantity       Int            @default(0)
+  safetyStock    Int            @default(0)
+  updatedAt      DateTime
+  productvariant productvariant @relation(fields: [variantId], references: [id], map: "Inventory_variantId_fkey")
 }
 
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  name      String?
-  reviews   Review[]
-  createdAt DateTime @default(now())
+model price {
+  id             String         @id
+  variantId      String
+  currency       String         @default("USD")
+  amount         Decimal        @db.Decimal(10, 2)
+  discount       Decimal?       @db.Decimal(10, 2)
+  validFrom      DateTime       @default(now())
+  validTo        DateTime?
+  productvariant productvariant @relation(fields: [variantId], references: [id], map: "Price_variantId_fkey")
+
+  @@index([variantId, validFrom(sort: Desc)], map: "Price_variantId_validFrom_idx")
 }
 
-model Tag {
-  id         String        @id @default(cuid())
-  name       String        @unique
-  productTags ProductTag[]
-}
-
-model Product {
-  id             String           @id @default(cuid())
+model product {
+  id             String           @id
   name           String
-  slug           String           @unique
+  slug           String           @unique(map: "Product_slug_key")
   description    String?
   glbUrl         String?
   ratingAverage  Decimal?         @db.Decimal(3, 2)
@@ -63,92 +63,94 @@ model Product {
   brandId        String
   categoryId     String
   createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
+  updatedAt      DateTime
+  brand          brand            @relation(fields: [brandId], references: [id], map: "Product_brandId_fkey")
+  category       category         @relation(fields: [categoryId], references: [id], map: "Product_categoryId_fkey")
+  productimage   productimage[]
+  producttag     producttag[]
+  productvariant productvariant[]
+  review         review[]
 
-  brand          Brand            @relation(fields: [brandId], references: [id])
-  category       Category         @relation(fields: [categoryId], references: [id])
-  productImages  ProductImage[]
-  productTags    ProductTag[]
-  productVariants ProductVariant[]
-  reviews        Review[]
+  @@index([brandId], map: "Product_brandId_fkey")
+  @@index([categoryId], map: "Product_categoryId_fkey")
 }
 
-model ProductImage {
-  id        String   @id @default(cuid())
+model productimage {
+  id        String  @id
   url       String
   productId String
-  sortOrder Int      @default(0)
-  product   Product  @relation(fields: [productId], references: [id])
+  sortOrder Int     @default(0)
+  product   product @relation(fields: [productId], references: [id], map: "ProductImage_productId_fkey")
 
-  @@index([productId, sortOrder])
+  @@index([productId, sortOrder], map: "ProductImage_productId_sortOrder_idx")
 }
 
-model ProductTag {
+model producttag {
   productId String
   tagId     String
-  product   Product @relation(fields: [productId], references: [id])
-  tag       Tag     @relation(fields: [tagId], references: [id])
+  product   product @relation(fields: [productId], references: [id], map: "ProductTag_productId_fkey")
+  tag       tag     @relation(fields: [tagId], references: [id], map: "ProductTag_tagId_fkey")
 
   @@id([productId, tagId])
-  @@index([tagId])
+  @@index([tagId], map: "ProductTag_tagId_idx")
 }
 
-model ProductVariant {
-  id         String                 @id @default(cuid())
-  productId  String
-  colorId    String
-  sizeId     String
-  sku        String                 @unique
-  status     ProductVariantStatus  @default(ACTIVE)
-  createdAt  DateTime              @default(now())
-  updatedAt  DateTime              @updatedAt
+model productvariant {
+  id        String                @id
+  productId String
+  colorId   String
+  sizeId    String
+  sku       String                @unique(map: "ProductVariant_sku_key")
+  status    productvariant_status @default(ACTIVE)
+  createdAt DateTime              @default(now())
+  updatedAt DateTime
+  inventory inventory?
+  price     price[]
+  color     color                 @relation(fields: [colorId], references: [id], map: "ProductVariant_colorId_fkey")
+  product   product               @relation(fields: [productId], references: [id], map: "ProductVariant_productId_fkey")
+  size      size                  @relation(fields: [sizeId], references: [id], map: "ProductVariant_sizeId_fkey")
 
-  product    Product               @relation(fields: [productId], references: [id])
-  color      Color                 @relation(fields: [colorId], references: [id])
-  size       Size                  @relation(fields: [sizeId], references: [id])
-  inventory  Inventory?
-  prices     Price[]
+  @@index([colorId], map: "ProductVariant_colorId_fkey")
+  @@index([productId], map: "ProductVariant_productId_fkey")
+  @@index([sizeId], map: "ProductVariant_sizeId_fkey")
 }
 
-model Inventory {
-  variantId   String   @id
-  quantity    Int      @default(0)
-  safetyStock Int      @default(0)
-  updatedAt   DateTime @updatedAt
-
-  variant     ProductVariant @relation(fields: [variantId], references: [id])
-}
-
-model Price {
-  id         String          @id @default(cuid())
-  variantId  String
-  currency   String          @default("USD")
-  amount     Decimal         @db.Decimal(10, 2)
-  discount   Decimal?        @db.Decimal(10, 2)
-  validFrom  DateTime        @default(now())
-  validTo    DateTime?
-
-  variant    ProductVariant  @relation(fields: [variantId], references: [id])
-
-  @@index([variantId, validFrom(sort: Desc)])
-}
-
-model Review {
-  id        String   @id @default(cuid())
+model review {
+  id        String   @id
   productId String
   userId    String
   rating    Int
   comment   String?
   createdAt DateTime @default(now())
+  product   product  @relation(fields: [productId], references: [id], map: "Review_productId_fkey")
+  user      user     @relation(fields: [userId], references: [id], map: "Review_userId_fkey")
 
-  product   Product  @relation(fields: [productId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
-
-  @@index([productId, rating])
-  @@index([userId])
+  @@index([productId, rating], map: "Review_productId_rating_idx")
+  @@index([userId], map: "Review_userId_idx")
 }
 
-enum ProductVariantStatus {
+model size {
+  id             String           @id
+  label          String           @unique(map: "Size_label_key")
+  productvariant productvariant[]
+}
+
+model tag {
+  id         String       @id
+  name       String       @unique(map: "Tag_name_key")
+  producttag producttag[]
+}
+
+model user {
+  id        String   @id
+  email     String   @unique(map: "User_email_key")
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+  review    review[]
+}
+
+enum productvariant_status {
   ACTIVE
   INACTIVE
   ARCHIVED

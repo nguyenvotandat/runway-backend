@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { ProductRepositoryInterface, ProductFilter } from '../domain/product.repository.interface';
-import { ProductEntity } from '../domain/product.entity';
+import { ProductRepositoryInterface, ProductFilter } from '../domain/interfaces/product.repository.interface';
+import { ProductEntity } from '../domain/entities/product.entity';
 import { CreateProductDto, UpdateProductDto, ProductFilterDto } from '../presentation/product.dto';
 import { PaginatedResponseDto } from '../../../common/dto/pagination.dto';
 
@@ -21,7 +21,7 @@ export class ProductService {
   ): Promise<PaginatedResponseDto<ProductEntity>> {
     const filter: ProductFilter = {
       categoryId: filterDto.categoryId,
-      brand: filterDto.brand,
+      brandId: filterDto.brandId,
       minPrice: filterDto.minPrice,
       maxPrice: filterDto.maxPrice,
       search: filterDto.search,

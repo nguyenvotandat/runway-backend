@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../infra/prisma/prisma.service';
 import { AuthRepositoryInterface, CreateUserData } from '../domain/auth.repository.interface';
 import { AuthEntity } from '../domain/auth.entity';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class AuthPrismaRepository implements AuthRepositoryInterface {
@@ -9,7 +10,12 @@ export class AuthPrismaRepository implements AuthRepositoryInterface {
 
   async create(data: CreateUserData): Promise<AuthEntity> {
     const user = await this.prisma.user.create({
-      data,
+      data: {
+        id: randomUUID(),
+        email: data.email,
+        password: data.password,
+        name: data.name,
+      },
     });
 
     return new AuthEntity(user);

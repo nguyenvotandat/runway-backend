@@ -30,33 +30,25 @@ export class CreateProductDto {
   @IsNotEmpty({ message: 'Tên sản phẩm không được để trống' })
   name: string;
 
-  @IsString({ message: 'Thương hiệu phải là chuỗi ký tự' })
-  @IsNotEmpty({ message: 'Thương hiệu không được để trống' })
-  brand: string;
+  @IsString({ message: 'Slug phải là chuỗi ký tự' })
+  @IsNotEmpty({ message: 'Slug không được để trống' })
+  slug: string;
 
-  @IsNumber({}, { message: 'Giá phải là số' })
-  @Min(0, { message: 'Giá phải lớn hơn hoặc bằng 0' })
-  price: number;
+  @IsString({ message: 'ID thương hiệu phải là chuỗi ký tự' })
+  @IsNotEmpty({ message: 'ID thương hiệu không được để trống' })
+  brandId: string;
 
   @IsString({ message: 'ID danh mục phải là chuỗi ký tự' })
   @IsNotEmpty({ message: 'ID danh mục không được để trống' })
   categoryId: string;
 
   @IsOptional()
+  @IsString({ message: 'Mô tả phải là chuỗi ký tự' })
+  description?: string;
+
+  @IsOptional()
   @IsUrl({}, { message: 'URL model 3D không hợp lệ' })
   glbUrl?: string;
-
-  @IsOptional()
-  @IsArray({ message: 'Hình ảnh phải là mảng' })
-  @ValidateNested({ each: true })
-  @Type(() => ProductImageDto)
-  images?: ProductImageDto[];
-
-  @IsOptional()
-  @IsArray({ message: 'Màu sắc phải là mảng' })
-  @ValidateNested({ each: true })
-  @Type(() => ProductColorDto)
-  colors?: ProductColorDto[];
 }
 
 export class UpdateProductDto {
@@ -66,14 +58,14 @@ export class UpdateProductDto {
   name?: string;
 
   @IsOptional()
-  @IsString({ message: 'Thương hiệu phải là chuỗi ký tự' })
-  @IsNotEmpty({ message: 'Thương hiệu không được để trống' })
-  brand?: string;
+  @IsString({ message: 'Slug phải là chuỗi ký tự' })
+  @IsNotEmpty({ message: 'Slug không được để trống' })
+  slug?: string;
 
   @IsOptional()
-  @IsNumber({}, { message: 'Giá phải là số' })
-  @Min(0, { message: 'Giá phải lớn hơn hoặc bằng 0' })
-  price?: number;
+  @IsString({ message: 'ID thương hiệu phải là chuỗi ký tự' })
+  @IsNotEmpty({ message: 'ID thương hiệu không được để trống' })
+  brandId?: string;
 
   @IsOptional()
   @IsString({ message: 'ID danh mục phải là chuỗi ký tự' })
@@ -81,20 +73,12 @@ export class UpdateProductDto {
   categoryId?: string;
 
   @IsOptional()
+  @IsString({ message: 'Mô tả phải là chuỗi ký tự' })
+  description?: string;
+
+  @IsOptional()
   @IsUrl({}, { message: 'URL model 3D không hợp lệ' })
   glbUrl?: string;
-
-  @IsOptional()
-  @IsArray({ message: 'Hình ảnh phải là mảng' })
-  @ValidateNested({ each: true })
-  @Type(() => ProductImageDto)
-  images?: ProductImageDto[];
-
-  @IsOptional()
-  @IsArray({ message: 'Màu sắc phải là mảng' })
-  @ValidateNested({ each: true })
-  @Type(() => ProductColorDto)
-  colors?: ProductColorDto[];
 }
 
 export class ProductFilterDto {
@@ -103,8 +87,8 @@ export class ProductFilterDto {
   categoryId?: string;
 
   @IsOptional()
-  @IsString({ message: 'Thương hiệu phải là chuỗi ký tự' })
-  brand?: string;
+  @IsString({ message: 'ID thương hiệu phải là chuỗi ký tự' })
+  brandId?: string;
 
   @IsOptional()
   @Type(() => Number)

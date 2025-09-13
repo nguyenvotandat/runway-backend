@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../infra/prisma/prisma.service';
 import { CategoryRepositoryInterface, CreateCategoryData } from '../domain/category.repository.interface';
 import { CategoryEntity } from '../domain/category.entity';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class CategoryPrismaRepository implements CategoryRepositoryInterface {
@@ -9,7 +10,12 @@ export class CategoryPrismaRepository implements CategoryRepositoryInterface {
 
   async create(data: CreateCategoryData): Promise<CategoryEntity> {
     const category = await this.prisma.category.create({
-      data,
+      data: {
+        id: randomUUID(),
+        name: data.name,
+        slug: data.slug,
+        updatedAt: new Date(),
+      },
     });
 
     return new CategoryEntity(category);

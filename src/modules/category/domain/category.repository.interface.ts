@@ -2,6 +2,7 @@ import { CategoryEntity } from './category.entity';
 
 export interface CreateCategoryData {
   name: string;
+  slug: string;
 }
 
 export abstract class CategoryRepositoryInterface {

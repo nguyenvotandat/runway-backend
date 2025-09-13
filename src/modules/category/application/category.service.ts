@@ -18,7 +18,21 @@ export class CategoryService {
       throw new ConflictException('Danh mục đã tồn tại');
     }
 
-    return this.categoryRepository.create({ name });
+    // Generate slug from name
+    const slug = this.generateSlug(name);
+
+    return this.categoryRepository.create({ name, slug });
+  }
+
+  private generateSlug(name: string): string {
+    return name
+      .toLowerCase()
+      .normalize('NFD') // Normalize Vietnamese characters
+      .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
+      .replace(/[đĐ]/g, 'd') // Handle Vietnamese 'd' character
+      .replace(/[^a-z0-9\s-]/g, '') // Remove non-alphanumeric characters
+      .trim()
+      .replace(/\s+/g, '-'); // Replace spaces with hyphens
   }
 
   async findAll(): Promise<CategoryEntity[]> {
