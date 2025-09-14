@@ -142,16 +142,133 @@ model tag {
 }
 
 model user {
-  id        String   @id
-  email     String   @unique(map: "User_email_key")
-  password  String
-  name      String?
-  createdAt DateTime @default(now())
-  review    review[]
+  id              String                  @id
+  email           String                  @unique(map: "User_email_key")
+  password        String
+  name            String?
+  createdAt       DateTime                @default(now())
+  review          review[]
+  campaign_usages campaign_user_usage[]   // ← NEW: Track user campaign usage
 }
+
+// === DISCOUNT CAMPAIGN SYSTEM ===
+
+model discount_campaign {
+  id          String                    @id @default(cuid())
+  name        String                    // "Black Friday 2024", "Nike Sale"
+  description String?                   
+  code        String?                   @unique // Mã voucher: "WELCOME20", "NIKE30"
+  
+  // Discount configuration
+  discountType   discount_type          @default(PERCENTAGE)
+  discountValue  Decimal               @db.Decimal(10, 2)  // 20 (cho 20%) hoặc 200000 (cho 200k)
+  maxDiscount    Decimal?              @db.Decimal(10, 2)  // Giảm tối đa (cho % discount)
+  minOrderValue  Decimal?              @db.Decimal(10, 2)  // Đơn hàng tối thiểu
+  
+  // Time constraints
+  startDate      DateTime
+  endDate        DateTime
+  
+  // Usage limits
+  maxUses        Int?                  // Tổng số lần sử dụng
+  maxUsesPerUser Int?                  // Mỗi user tối đa bao nhiều lần
+  usedCount      Int                   @default(0)
+  
+  // Campaign settings
+  status         campaign_status       @default(DRAFT)
+  priority       Int                   @default(0)        // Ưu tiên khi có nhiều campaign
+  isAutoApply    Boolean               @default(false)    // Tự động áp dụng không cần code
+  
+  // Metadata
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  createdBy      String?               // Admin user tạo campaign
+  
+  // Relations with existing models
+  rules          discount_rule[]
+  user_usages    campaign_user_usage[]
+  
+  @@index([code, status])
+  @@index([startDate, endDate, status])
+  @@index([status, isAutoApply, priority])
+}
+
+model discount_rule {
+  id           String              @id @default(cuid())
+  campaignId   String
+  
+  // Rule configuration
+  ruleType     discount_rule_type
+  targetType   rule_target_type
+  targetId     String?             // REFERENCES existing models: product.id, category.id, brand.id, etc.
+  
+  // Additional conditions
+  minQuantity  Int?               // Số lượng sản phẩm tối thiểu
+  conditions   Json?              // JSON cho complex conditions
+  
+  // Rule metadata
+  createdAt    DateTime          @default(now())
+  
+  // Relations
+  campaign     discount_campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  
+  @@index([campaignId, ruleType])
+  @@index([targetType, targetId])
+  @@index([campaignId, targetType])
+}
+
+model campaign_user_usage {
+  id         String            @id @default(cuid())
+  campaignId String
+  userId     String            // REFERENCES user.id
+  usedCount  Int               @default(0)
+  totalSaved Decimal           @db.Decimal(10, 2) @default(0)  // Tổng tiền đã tiết kiệm
+  lastUsed   DateTime?
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+  
+  // Relations with existing models
+  campaign   discount_campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  user       user             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([campaignId, userId])
+  @@index([userId])
+  @@index([campaignId, userId])
+}
+
+// === ENUMS ===
 
 enum productvariant_status {
   ACTIVE
   INACTIVE
   ARCHIVED
+}
+
+enum discount_type {
+  PERCENTAGE      // Giảm theo phần trăm: 20%
+  FIXED_AMOUNT    // Giảm số tiền cố định: 200,000đ
+  FREE_SHIPPING   // Miễn phí vận chuyển
+}
+
+enum campaign_status {
+  DRAFT          // Nháp - chưa active
+  ACTIVE         // Đang chạy
+  PAUSED         // Tạm dừng
+  EXPIRED        // Hết hạn
+  DISABLED       // Vô hiệu hóa
+}
+
+enum discount_rule_type {
+  INCLUDE       // Bao gồm (áp dụng discount)
+  EXCLUDE       // Loại trừ (không áp dụng discount)
+}
+
+enum rule_target_type {
+  ALL_PRODUCTS    // Tất cả sản phẩm
+  SPECIFIC_PRODUCT // Sản phẩm cụ thể -> product.id
+  PRODUCT_VARIANT  // Variant cụ thể -> productvariant.id
+  CATEGORY        // Theo danh mục -> category.id
+  BRAND          // Theo thương hiệu -> brand.id
+  TAG            // Theo tag sản phẩm -> tag.id
+  PRICE_RANGE    // Theo khoảng giá (JSON conditions)
 }

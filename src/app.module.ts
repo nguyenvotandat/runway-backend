@@ -6,6 +6,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
 import { CategoryModule } from './modules/category/category.module';
 import { ProductModule } from './modules/product/product.module';
+import { CampaignModule } from './modules/campaign/campaign.module';
 import { PrismaService } from './infra/prisma/prisma.service';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
@@ -21,6 +22,9 @@ import configuration from './config/configuration';
     AuthModule,
     CategoryModule,
     ProductModule,
+    CampaignModule,
+  ],
+  controllers: [AppController],
   ],
   controllers: [AppController],
   providers: [
