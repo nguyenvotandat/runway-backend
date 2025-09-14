@@ -25,8 +25,6 @@ import configuration from './config/configuration';
     CampaignModule,
   ],
   controllers: [AppController],
-  ],
-  controllers: [AppController],
   providers: [
     AppService,
     PrismaService,

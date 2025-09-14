@@ -1,0 +1,156 @@
+# Campaign API Test Requests
+
+## 1. Create a Campaign with Percentage Discount
+POST http://localhost:3000/api/campaigns
+Content-Type: application/json
+
+{
+  "name": "Summer Sale 2025",
+  "description": "25% off all products summer campaign",
+  "code": "SUMMER25",
+  "discountType": "PERCENTAGE",
+  "discountValue": 25,
+  "maxDiscount": 100000,
+  "minOrderValue": 50000,
+  "startDate": "2025-09-15T00:00:00.000Z",
+  "endDate": "2025-12-31T23:59:59.000Z",
+  "maxUses": 1000,
+  "maxUsesPerUser": 3,
+  "status": "ACTIVE",
+  "priority": 10,
+  "isAutoApply": false,
+  "rules": [
+    {
+      "ruleType": "INCLUDE",
+      "targetType": "ALL_PRODUCTS"
+    }
+  ]
+}
+
+###
+
+## 2. Create a Fixed Amount Discount Campaign
+POST http://localhost:3000/api/campaigns
+Content-Type: application/json
+
+{
+  "name": "Fixed 50K Discount",
+  "description": "Get 50,000 VND off your order",
+  "code": "FIXED50K",
+  "discountType": "FIXED_AMOUNT",
+  "discountValue": 50000,
+  "minOrderValue": 200000,
+  "startDate": "2025-09-15T00:00:00.000Z",
+  "endDate": "2025-10-15T23:59:59.000Z",
+  "maxUses": 500,
+  "maxUsesPerUser": 1,
+  "status": "ACTIVE",
+  "priority": 5,
+  "isAutoApply": false,
+  "rules": [
+    {
+      "ruleType": "INCLUDE",
+      "targetType": "ALL_PRODUCTS"
+    }
+  ]
+}
+
+###
+
+## 3. Get All Active Campaigns
+GET http://localhost:3000/api/campaigns?status=ACTIVE
+
+###
+
+## 4. Get All Campaigns
+GET http://localhost:3000/api/campaigns
+
+###
+
+## 5. Test Voucher Code Validation (SUMMER25)
+POST http://localhost:3000/api/campaigns/validate-voucher
+Content-Type: application/json
+
+{
+  "code": "SUMMER25",
+  "userId": "user_123",
+  "cartItems": [
+    {
+      "variantId": "variant_1",
+      "quantity": 2,
+      "price": 100000,
+      "productId": "product_1"
+    },
+    {
+      "variantId": "variant_2", 
+      "quantity": 1,
+      "price": 80000,
+      "productId": "product_2"
+    }
+  ]
+}
+
+###
+
+## 6. Test Voucher Code Validation (FIXED50K)
+POST http://localhost:3000/api/campaigns/validate-voucher
+Content-Type: application/json
+
+{
+  "code": "FIXED50K",
+  "userId": "user_123",
+  "cartItems": [
+    {
+      "variantId": "variant_1",
+      "quantity": 3,
+      "price": 100000,
+      "productId": "product_1"
+    }
+  ]
+}
+
+###
+
+## 7. Test Invalid Voucher Code
+POST http://localhost:3000/api/campaigns/validate-voucher
+Content-Type: application/json
+
+{
+  "code": "INVALID_CODE",
+  "userId": "user_123",
+  "cartItems": [
+    {
+      "variantId": "variant_1",
+      "quantity": 1,
+      "price": 100000
+    }
+  ]
+}
+
+###
+
+## 8. Test Cart Below Minimum Order Value
+POST http://localhost:3000/api/campaigns/validate-voucher
+Content-Type: application/json
+
+{
+  "code": "SUMMER25",
+  "userId": "user_123",
+  "cartItems": [
+    {
+      "variantId": "variant_1",
+      "quantity": 1,
+      "price": 30000
+    }
+  ]
+}
+
+###
+
+## 9. Get Campaign by ID (replace with actual ID)
+GET http://localhost:3000/api/campaigns/{campaign_id}
+
+###
+
+## 10. Get Campaign Stats by ID (replace with actual ID)  
+GET http://localhost:3000/api/campaigns/{campaign_id}/stats
