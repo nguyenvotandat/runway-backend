@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { ProductRepositoryInterface, ProductFilter } from '../domain/interfaces/product.repository.interface';
 import { ProductEntity } from '../domain/entities/product.entity';
-import { CreateProductDto, UpdateProductDto, ProductFilterDto } from '../presentation/product.dto';
+import { CreateProductDto, UpdateProductDto } from '../presentation/product.dto';
 import { PaginatedResponseDto } from '../../../common/dto/pagination.dto';
 
 @Injectable()
@@ -15,18 +15,10 @@ export class ProductService {
   }
 
   async findAll(
-    filterDto: ProductFilterDto,
+    filter: ProductFilter,
     page: number = 1,
     limit: number = 10,
   ): Promise<PaginatedResponseDto<ProductEntity>> {
-    const filter: ProductFilter = {
-      categoryId: filterDto.categoryId,
-      brandId: filterDto.brandId,
-      minPrice: filterDto.minPrice,
-      maxPrice: filterDto.maxPrice,
-      search: filterDto.search,
-    };
-
     const result = await this.productRepository.findAll(filter, page, limit);
     
     return new PaginatedResponseDto(

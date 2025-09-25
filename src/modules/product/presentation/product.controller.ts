@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { ProductService } from '../application/product.service';
-import { CreateProductDto, UpdateProductDto, ProductFilterDto } from './product.dto';
+import { CreateProductDto, UpdateProductDto, ProductQueryDto } from './product.dto';
+import { ProductFilter } from '../domain/interfaces/product.repository.interface';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { Public } from '../../../common/decorators/public.decorator';
 import { BaseResponseDto } from '../../../common/dto/base-response.dto';
@@ -20,13 +21,23 @@ export class ProductController {
   @Public()
   @Get()
   async findAll(
-    @Query() filterDto: ProductFilterDto,
-    @Query() paginationDto: PaginationDto,
+    @Query() queryDto: ProductQueryDto,
   ) {
+    const { page, limit, categoryId, brandId, minPrice, maxPrice, search } = queryDto;
+  
+    // ✅ Map DTO sang Domain Filter thay vì truyền filterParams trực tiếp
+    const filter: ProductFilter = {
+      categoryId,
+      brandId,
+      minPrice,
+      maxPrice,
+      search,
+    };
+  
     const result = await this.productService.findAll(
-      filterDto,
-      paginationDto.page,
-      paginationDto.limit,
+      filter,
+      page || 1,
+      limit || 10,
     );
     return BaseResponseDto.success(result);
   }

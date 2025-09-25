@@ -10,6 +10,7 @@ import {
   IsHexColor,
   Min,
 } from 'class-validator';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 export class ProductImageDto {
   @IsUrl({}, { message: 'URL hình ảnh không hợp lệ' })
@@ -81,7 +82,9 @@ export class UpdateProductDto {
   glbUrl?: string;
 }
 
-export class ProductFilterDto {
+
+
+export class ProductQueryDto extends PaginationDto {
   @IsOptional()
   @IsString({ message: 'ID danh mục phải là chuỗi ký tự' })
   categoryId?: string;

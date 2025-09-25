@@ -17,16 +17,10 @@ export class AuthService {
   async register(registerDto: RegisterDto): Promise<AuthResult> {
     const { email, password, name } = registerDto;
 
-    // Check if user already exists
-    const existingUser = await this.authRepository.findByEmail(email);
-    if (existingUser) {
-      throw new ConflictException('Email đã được sử dụng');
-    }
-
     // Hash password
     const hashedPassword = await argon2.hash(password);
 
-    // Create user
+    // Create user (repository will handle duplicate email)
     const user = await this.authRepository.create({
       email,
       password: hashedPassword,
